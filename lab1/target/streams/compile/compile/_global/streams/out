@@ -1,0 +1,6 @@
+[0m[[0m[31merror[0m] [0m[0m/home/ali/Desktop/Data_Intensive/lab1/src/main/scala/lab1.scala:127:47: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : List[Double][0m
+[0m[[0m[31merror[0m] [0m[0m required: List[Long][0m
+[0m[[0m[31merror[0m] [0m[0m    val stats: List[Long] = get_pagesize_stats(pagecounts) // (max,min,avg)[0m
+[0m[[0m[31merror[0m] [0m[0m                                              ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
