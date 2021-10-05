@@ -27,18 +27,23 @@ def main():
         ds = json.load(f)
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(keys['client_id'], keys['client_secret']))
-    
-    #len(ds["playlists"]) == 1000
-    # finding the features using spotify api
 
+    f = open("dataset_with_features", "a")
+
+    listofallsongs = []
     for playlist in ds["playlists"]:
         for track in playlist["tracks"]:
             track_uri = track["track_uri"]
             track_features = spotify.audio_features(track_uri)
-            #print(track_features)
-            # we should probably put the result in a file 
-    
-    
+            listofallsongs.append(track_features[0])
+              
+        break # just taking a fews song to test poc
+
+    x = json.dumps(listofallsongs)
+    f.write(x + "\n")
+
+    f.close()
+
 if __name__ == "__main__":
     main()
 
