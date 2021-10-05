@@ -24,29 +24,34 @@ object KafkaSpark {
           "group.id" -> "kafka-spark-streaming",
           "zookeeper.connection.timeout.ms" -> "1000")
     
-    // val sc = new SparkContext("local", "mapWithState", new SparkConf())
-    val conf = new SparkConf().setAppName("lab2")
+    val conf = new SparkConf().setAppName("lab2").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(1))
     
-    val messages = KafkaUtils.createDirectStream[String,Double,StringDecoder,DefaultDecoder](
+    val messages = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](
       ssc,
       kafkaConf,
       Set("avg")
     )
 
+    val value = messages.map{case (key,value)=>value.split(",")}
+    val pairs = value.map(record => (record(1), record(2)))
+    print(pairs)
+
+    // print(messages.map(case (key,value)=>value.split(","))
+
     // <FILL IN>
 
     // measure the average value for each key in a stateful manner
-    def mappingFunc(key: String, value: Option[Double], state: State[Double]): (String, Double) = {
-      return (key,value.getOrElse(0))
-    }
-
-    println(messages)
-    // val stateDstream = messages.mapWithState(StateSpec.function(mappingFunc) //<FILL IN>)
-
     // def mapWithState[StateType, MappedType](spec: StateSpec[K, V, StateType, MappedType]): DStream[MappedType]
 
-
+    // val mappingFunc = (key: String, value: Option[Double], state: State[Double]) => { // : (String, Double)
+    //   // return (key,value.getOrElse(0))
+    //   state.update(1.0)
+    //   ("hey",2.0)
+    // }
+    // val pairs = messages.
+    // val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc)) //<FILL IN>)
+    
     ssc.start()
     ssc.awaitTermination()
   }
