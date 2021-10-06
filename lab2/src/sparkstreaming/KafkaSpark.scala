@@ -26,7 +26,7 @@ object KafkaSpark {
     
     val conf = new SparkConf().setAppName("lab2").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(1))
-    ssc.checkpoint(".")
+    ssc.checkpoint("checkpoints/.")
     
     val messages = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](
       ssc,
@@ -60,11 +60,21 @@ object KafkaSpark {
     // measure the average value for each key in a stateful manner
     // def mapWithState[StateType, MappedType](spec: StateSpec[K, V, StateType, MappedType]): DStream[MappedType]
 
-    def mappingFunc(key: String, value: Option[Double], state: State[Double]): (String, Double) = {
-      // return (key,value.getOrElse(0))
-      // state.update(1.0)
-      ("hey",2.0)
+    def mappingFunc(key: String, value: Option[Double], state: State[Map[String,Tuple(Double,Int)]]): (String, Double) = { // State[(Map[key,Tuple(Double,Int)])]
+      // val (currentkey, sum, cnt) = state.getOption.getOrElse(("a", 0.0, 0))
+      val map_avgs = state.getOption.getOrElse((Map()))
+      val newSum = value.getOrElse(0.0) + map_avgs(key)(0) * map_avgs(key)(1)
+      val newCnt = cnt + 1
+      // state.update((key, newSum, newCnt))
+      new_avg = newSum/newCnt
+      map_avgs(key) = (new_avg, newCnt)
+      state.update(map_avgs)
+      (key, new_avg)
     }
+
+    // def mappingFunc(key: String, value: Option[Double], state: State[Double]): (String, Double) = {
+	  // <FILL IN>
+    // }
 
     val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc _)) //<FILL IN>)
     stateDstream.print()
