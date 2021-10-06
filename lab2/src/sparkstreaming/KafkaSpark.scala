@@ -26,6 +26,7 @@ object KafkaSpark {
     
     val conf = new SparkConf().setAppName("lab2").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(1))
+    ssc.checkpoint(".")
     
     val messages = KafkaUtils.createDirectStream[String,String,StringDecoder,StringDecoder](
       ssc,
@@ -34,8 +35,23 @@ object KafkaSpark {
     )
 
     val value = messages.map{case (key,value)=>value.split(",")}
-    val pairs = value.map(record => (record(1), record(2)))
-    print(pairs)
+    val pairs = value.map(record => (record(0), record(1).toDouble))
+
+    // val pairs = value.map(record => (record(1), record(2).toDouble))
+
+    // // github
+    // def mappingFunc(key: String, value: Option[Double], state: State[Double]): Option[(String, Double)] = { // (String, Double)
+    //     val sum = value.getOrElse(0.0) + state.getOption.getOrElse(0.0)
+    //     val output = Option(key, sum)
+    //     state.update(sum)
+    //     output
+    // }
+    // val spec = StateSpec.function(mappingFunc _)
+    // val stateDstream = pairs.mapWithState(spec)
+
+    // // store the result in Cassandra
+    // stateDstream.print()
+    // github
 
     // print(messages.map(case (key,value)=>value.split(","))
 
@@ -44,13 +60,14 @@ object KafkaSpark {
     // measure the average value for each key in a stateful manner
     // def mapWithState[StateType, MappedType](spec: StateSpec[K, V, StateType, MappedType]): DStream[MappedType]
 
-    // val mappingFunc = (key: String, value: Option[Double], state: State[Double]) => { // : (String, Double)
-    //   // return (key,value.getOrElse(0))
-    //   state.update(1.0)
-    //   ("hey",2.0)
-    // }
-    // val pairs = messages.
-    // val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc)) //<FILL IN>)
+    def mappingFunc(key: String, value: Option[Double], state: State[Double]): (String, Double) = {
+      // return (key,value.getOrElse(0))
+      // state.update(1.0)
+      ("hey",2.0)
+    }
+
+    val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc _)) //<FILL IN>)
+    stateDstream.print()
     
     ssc.start()
     ssc.awaitTermination()
