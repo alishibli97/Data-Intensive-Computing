@@ -9,11 +9,8 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "2.4.3",
   "org.apache.spark" % "spark-streaming_2.11" % "2.4.3",
   "org.apache.spark" % "spark-streaming-kafka-0-8_2.11" % "2.0.0",
+  "org.apache.spark" % "spark-sql-kafka-0-10_2.11" % "2.2.1",
+  // "org.apache.spark" % "spark-sql-kafka-0-8_2.11" % "2.0.0", // added task 2
   ("com.datastax.spark" %% "spark-cassandra-connector" % "2.0.2").exclude("io.netty", "netty-handler"),
   ("com.datastax.cassandra" % "cassandra-driver-core" % "3.0.0").exclude("io.netty", "netty-handler")
 )
-
-// libraryDependencies ++= Seq(
-// "org.apache.spark" % "spark-streaming_2.11" % "2.4.3",
-// "org.apache.spark" % "spark-streaming-kafka-0-8_2.11" % "2.4.3"
-// )
