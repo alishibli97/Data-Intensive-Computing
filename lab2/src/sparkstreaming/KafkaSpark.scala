@@ -12,13 +12,10 @@ import org.apache.spark.storage.StorageLevel
 import java.util.{Date, Properties}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, ProducerConfig}
 import scala.util.Random
-import org.apache.spark.sql.functions.{min, max, avg, desc, udf, col, explode, count}
+import org.apache.spark.sql.functions.{min, max, avg, desc, udf, col, explode, count, split}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, StreamingQueryException}
 import org.apache.spark.sql._
-
-// import scala.collection.mutable.Map
-// import org.apache.spark.SparkContext
 
 object KafkaSpark {
   def main(args: Array[String]) {
@@ -61,9 +58,9 @@ object KafkaSpark {
       (key, new_avg)
     }
 
-    def keyFunc(key: String){
-      ("a")
-    }
+    // def keyFunc(key: String){
+    //   ("a")
+    // }
 
     // task 1
     // val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc _)) //<FILL IN>)
@@ -79,42 +76,45 @@ object KafkaSpark {
       .load()
 
     // inputDF.printSchema()
-    val df = inputDF.selectExpr("CAST(value AS STRING)")
+    val df = inputDF.selectExpr("CAST(value AS STRING)").select(split(col("value"),",").alias("value"))
     // df.printSchema()
+    df.printSchema()
 
-    // val df = pagecounts_log.toDF("project_code","page_title","page_hits","page_size")
+    val query = df.writeStream.outputMode("append").format("console").start().awaitTermination()
 
     // df.groupByKey(keyFunc) // keyFunction() generates key from input
     // .mapGroupsWithState(mappingFunc)
 
-    def mappingFunc2(key: String, value: Iterator[Row], state: GroupState[(Double,Int)]): (String, Double) = { // , 
-      if (value.isEmpty && state.hasTimedOut) {
-        ("a", 0.0)
-      } else {
-        state.setTimeoutTimestamp(2000)
-        // val stateNames = state.getOption.getOrElse(Seq.empty)
+    // def mappingFunc2(key: String, value: Iterator[Row], state: GroupState[(Double,Int)]): (String, Double) = { // , 
+    //   if (value.isEmpty && state.hasTimedOut) {
+    //     ("a", 0.0)
+    //   } else {
+    //     state.setTimeoutTimestamp(2000)
+    //     // val stateNames = state.getOption.getOrElse(Seq.empty)
 
-        val new_key = value.next().getString(0).split(",")(0)
-        val new_val = value.next().getString(0).split(",")(1).toInt
-        val newSum = new_val + state.getOption.getOrElse(0.0,0)._1
-        val newCnt = state.getOption.getOrElse((0.0,0))._2 + 1
+    //     val new_key = value.next().getString(0).split(",")(0)
+    //     val new_val = value.next().getString(0).split(",")(1).toInt
+    //     val newSum = new_val + state.getOption.getOrElse(0.0,0)._1
+    //     val newCnt = state.getOption.getOrElse((0.0,0))._2 + 1
 
-        state.update(newSum, newCnt)
-        val new_avg = newSum/newCnt
-        (key, new_avg)
-      }
+    //     state.update(newSum, newCnt)
+    //     val new_avg = newSum/newCnt
+    //     (key, new_avg)
+    //   }
 
-    }
+    // }
 
-    import spark.implicits._
-    val mappedValues = df
-      .groupByKey(row => row.getString(0))
-      .mapGroupsWithState(timeoutConf = GroupStateTimeout.EventTimeTimeout())(mappingFunc2)
 
-    val query = df.writeStream
-      .format("console")
-      .outputMode("update") //complete
-      .start()
+
+    // import spark.implicits._
+    // val mappedValues = df
+    //   .groupByKey(row => row.getString(0))
+    //   .mapGroupsWithState(timeoutConf = GroupStateTimeout.EventTimeTimeout())(mappingFunc2)
+
+    // val query = df.writeStream
+    //   .format("console")
+    //   .outputMode("update") //complete
+    //   .start()
       //.awaitTermination()
 
 
