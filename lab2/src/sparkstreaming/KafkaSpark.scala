@@ -17,6 +17,8 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, StreamingQueryException}
 import org.apache.spark.sql._
 
+import java.sql.Timestamp
+
 object KafkaSpark {
   def main(args: Array[String]) {
     // make a connection to Kafka and read (key, value) pairs from it
@@ -68,19 +70,63 @@ object KafkaSpark {
     // task 1
 
     // task 2
+    import spark.implicits._
     val inputDF = spark
       .readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", "host1:port1,host2:port2")
       .option("subscribe", "avg") // subscribe to topic "avg"
       .load()
+      // .selectExpr("CAST(value AS STRING)", "timestamp")
+      // .as[(String, Timestamp)]
+
+    // val events = inputDF._1.split(",")
 
     // inputDF.printSchema()
-    val df = inputDF.selectExpr("CAST(value AS STRING)").select(split(col("value"),",").alias("value"))
-    // df.printSchema()
-    df.printSchema()
+    val df = inputDF.selectExpr("CAST(value AS STRING)").select(split(col("value"),",").alias("value2"))
+    // df.printSchema()// dataframe of array of 2 strs
+    // UP TO HERE OK.
+
+    val sessionUpdates = df
+      .groupByKey(event => event._1)//event.sessionId)
+      .mapGroupsWithState[SessionInfo, SessionUpdate](GroupStateTimeout.ProcessingTimeTimeout) {
+
+        case (sessionId: String, events: Iterator[Event], state: GroupState[SessionInfo]) =>
+
+          // If timed out, then remove session and send final update
+          if (state.hasTimedOut) {
+            val finalUpdate =
+              SessionUpdate(sessionId, state.get.durationMs, state.get.numEvents, expired = true)
+            state.remove()
+            finalUpdate
+          } else {
+            // Update start and end timestamps in session
+            val timestamps = events.map(_.timestamp.getTime).toSeq
+            val updatedSession = if (state.exists) {
+              val oldSession = state.get
+              SessionInfo(
+                oldSession.numEvents + timestamps.size,
+                oldSession.startTimestampMs,
+                math.max(oldSession.endTimestampMs, timestamps.max))
+            } else {
+              SessionInfo(timestamps.size, timestamps.min, timestamps.max)
+            }
+            state.update(updatedSession)
+
+            // Set timeout such that the session will be expired if no data received for 10 seconds
+            state.setTimeoutDuration("10 seconds")
+            SessionUpdate(sessionId, state.get.durationMs, state.get.numEvents, expired = false)
+          }
+      }
+
+
+
+    // BELOW ALSO OK
+
+
 
     val query = df.writeStream.outputMode("append").format("console").start().awaitTermination()
+
 
     // df.groupByKey(keyFunc) // keyFunction() generates key from input
     // .mapGroupsWithState(mappingFunc)
@@ -132,7 +178,14 @@ object KafkaSpark {
 
     // task 2
 
-    ssc.start()
-    ssc.awaitTermination()
+    // val query = sessionUpdates
+    //   .writeStream
+    //   .outputMode("update")
+    //   .format("console")
+    //   .start()
+
+
+    // ssc.start()
+    // ssc.awaitTermination()
   }
 }
