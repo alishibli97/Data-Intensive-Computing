@@ -1,9 +1,20 @@
 package sparkstreaming
 
 import org.apache.spark.graphx._
+import org.apache.spark.sql.SparkSession
+
 
 object KafkaSpark {
   def main(args: Array[String]) {
+    val spark = SparkSession
+      .builder
+      .appName("lab2")
+      .config("spark.master", "local")
+      .getOrCreate()
+    
+    spark.sparkContext.setLogLevel("ERROR")
+    val sc = spark.sparkContext
+
     val myVertices = sc.makeRDD(Array(
         (1L, ("Alice", 28)), 
         (2L, ("Bob", 27)), 
@@ -44,13 +55,13 @@ object KafkaSpark {
         myGraph.edges.filter{e=>e.dstId==id}.count
     }
 
-    println(myGraph.vertices.collect)
+    // println(myGraph.vertices.collect)
 
     // 1
-    // myGraph.vertices.foreach{ e => if (e._2._2 > 30) print(e) }
+    // myGraph.vertices.foreach{ e => if (e._2._2 > 30) println(e) }
 
     // // 2
-    // myGraph.edges.collect.foreach{e => println(nameof(e.srcId)+" like "+nameof(e.dstId))}
+    // myGraph.edges.collect.foreach{e => println(nameof(e.srcId)+" likes "+nameof(e.dstId))}
 
     // // 3
     // myGraph.edges.collect.foreach{e => if(e.attr>5) println(nameof(e.srcId)+" loves "+nameof(e.dstId))}
@@ -80,5 +91,6 @@ object KafkaSpark {
     // }
     // }.collect.foreach { case (id, str) => println(str) }
 
+    // spark.stop()
   }
 }

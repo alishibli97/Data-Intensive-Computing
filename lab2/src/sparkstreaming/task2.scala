@@ -40,33 +40,24 @@ object KafkaSpark {
         .format("kafka")
         .option("kafka.bootstrap.servers", "localhost:9092") // host1:port1,host2:port2
         .option("subscribe", "avg")
+        .option("failOnDataLoss", "false")
         .load()
 
     spark.sparkContext.setLogLevel("ERROR")
 
-    // val ds = inputDF.selectExpr("CAST(value AS STRING)")
-    //     .withColumn("_tmp", split($"value", ",")).select(
-    //         $"_tmp".getItem(0).as("key"),
-    //         $"_tmp".getItem(1).toDouble.as("value")
-    //     )//.groupBy("key")
-    // ds.printSchema()
-
     val ds = inputDF
-        .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-        .as[(String, String)]
-        .map(x => x._2.split(","))
+        .selectExpr("CAST(value AS STRING)")
+        .as[String]
+        .map(x => x.split(","))
         .map(x => (x(0), x(1).toDouble))
         .withColumnRenamed("_1", "key")
         .withColumnRenamed("_2", "value")
-
     val df_obj = ds.as[Call]
 
     // A mapping function that maintains an integer state for string keys and returns a string.
     // Additionally, it sets a timeout to remove the state if it has not received data for an hour.
     def mappingFunction(key: String, value: Iterator[Call], state: GroupState[(Double,Int)]): (String, Double) = {
-
-        println(key)
-
+        
         var newSum = 0.0
         var newCnt = 0
 
@@ -108,21 +99,26 @@ object KafkaSpark {
 
     // Method1: use built in avg function
     // val result = df_obj.groupBy("key").avg("value")
-    
+
     // Method2: groupby key then apply custom function mappingFunction
     val result = df_obj
         .groupByKey(event => event.key) //(event => event.col1)
         .mapGroupsWithState(GroupStateTimeout.ProcessingTimeTimeout)(mappingFunction _)
+        .withColumnRenamed("_1", "key")
+        .withColumnRenamed("_2", "value")
+
+    // result.printSchema()
 
     // Writing to console:
-    result.writeStream
+    result
+        .writeStream
         .format("console")
         .outputMode("update")
         .start()
         .awaitTermination()
 
     // Writing to kafka:
-    // val streamingQuery = result
+    // result
     //     .selectExpr("cast(key as string) as key", "cast(value as string) as value")
     //     .writeStream
     //     .format("kafka")
