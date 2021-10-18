@@ -2,6 +2,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import json
 import argparse
+import csv
+import pandas
 
 # spotify docs: 
 # https://spotipy.readthedocs.io/en/2.16.1/
@@ -28,19 +30,21 @@ def main():
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(keys['client_id'], keys['client_secret']))
 
-    f = open("dataset_with_features", "a")
+    f = open("dataset_with_features_csv.csv", "a")
+    
+    title = "danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo,type,id,uri,track_href,analysis_url,duration_ms,time_signature\n"
+    f.write(title)
 
-    listofallsongs = []
     for playlist in ds["playlists"]:
         for track in playlist["tracks"]:
             track_uri = track["track_uri"]
-            track_features = spotify.audio_features(track_uri)
-            listofallsongs.append(track_features[0])
-              
-        break # just taking a fews song to test poc
+            track_features = spotify.audio_features(track_uri)[0]
 
-    x = json.dumps(listofallsongs)
-    f.write(x + "\n")
+            #print("track_features", track_features)
+
+            for category in track_features:
+                f.write(str(track_features[category]) + ",")
+            f.write("\n")
 
     f.close()
 
