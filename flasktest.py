@@ -13,11 +13,9 @@ def index():
         global songlist
         for song in songlist:
 
-            #print(song, request.form.getlist(song))
             if request.form.get(song) != None:
                 checkedsongs.append(song)
 
-        #print(checkedsongs)
         songlist = suggestion_model.get_10_songs(checkedsongs) # get the 10 new songs based on user input
         return render_template('form.html', songlist=songlist)
     else:
