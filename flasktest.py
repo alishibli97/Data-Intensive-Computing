@@ -12,9 +12,9 @@ def index():
         for song in songlist:
             if request.form.get(song) != None:
                 checkedsongs.append(song)
+                print("Entered")
 
-        #print(checkedsongs)
-
+        print(checkedsongs)
         songlist = suggestion_model.get_10_songs(checkedsongs)
         return render_template('form.html', songlist=songlist)
     else:
