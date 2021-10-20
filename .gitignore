@@ -1,4 +1,0 @@
-# ignore all logs
-*.cache
-keys.json
-__pycache__
