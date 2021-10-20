@@ -1,13 +1,73 @@
 <html>
-  <form action='' method = "post">
-    
-    {%for word in songlist%}
 
-    <iframe src= {{word}} width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-    
-    Do you like this song? <input name = {{word}} type = "checkbox">
-    <br>
-    {%endfor%}
-    <input type = "submit">
-  </form> 
+  <head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+
+  
+  <body>
+    <div class="container-fluid">
+      <form action='' method = "post">
+        
+        <div class="col-sm-5">
+        {%for word in songlist%}
+
+        <iframe src= {{word}} width="300" height="60" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        
+        Do you like this song? <input name = {{word}} type = "checkbox">
+        <br>
+        {%endfor%}
+        <input class="btn btn-primary btn-lg" type = "submit" value="Submit" width="300" >
+      </div>
+
+          
+        
+      </form> 
+      
+      <div class="col-sm-4">
+      
+      <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+      
+      <script>
+        var xValues = [100,200,300,400,500,600,700,800,900,1000];
+
+        var user_vector = '{{ user_vector }}'  /* this is the data that should go into the graph */ 
+
+        new Chart("myChart", {
+          type: "line",
+          data: {
+            labels: xValues,
+            datasets: [{
+              data: [860,1140,1060,1060,1070,1110,1330,2210,7830,2478],
+              borderColor: "red",
+              fill: false
+            },{
+              data: [1600,1700,1700,1900,2000,2700,4000,5000,6000,7000],
+              borderColor: "green",
+              fill: false
+            },{
+              data: [300,700,2000,5000,6000,4000,2000,1000,200,100],
+              borderColor: "blue",
+              fill: false
+            }]
+          },
+          options: {
+            legend: {
+                display: false,
+                // labels: {
+                //     color: 'rgb(255, 99, 132)'
+                // }
+            }
+          }
+        });
+      </script>
+    </div>
+  </body>
 </html>

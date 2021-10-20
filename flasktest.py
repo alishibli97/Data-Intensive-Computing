@@ -22,6 +22,6 @@ def index():
         return render_template('form.html', songlist=songlist)
     else:
         songlist = suggestion_model.get_10_songs() # get the 10 songs based on nothing
-        return render_template('form.html', songlist=songlist)
+        return render_template('form.html', songlist=songlist, user_vector=suggestion_model.user_vector)
 
 app.run(host='0.0.0.0', port=5000, debug=True)
