@@ -1,14 +1,5 @@
-Run like this:
+KTH ID2221: Data Intensive Computing
 
-```bash
-python3 main.py -k keys.json
-```
+Branch main: Labs
 
-Where keys.json is 
-
-```json
-{
-    "client_id" : "your-client-id",
-    "client_secret" : "your-secret"
-}
-```
+Branch Spotify: Project
