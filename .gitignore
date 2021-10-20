@@ -1,4 +1,3 @@
-.gitignore
 keys.json
 .cache
 __pycache__
