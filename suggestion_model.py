@@ -117,6 +117,7 @@ class SuggestionModel:
                     self.normalize_df()
                     self.generate_stds()
                     self.generate_kmeans_model()
+                    print("Starting KMeans over the df")
                     self.kmeansFirstEntry=False
                 return self.recommend_by_kmeans()
 
