@@ -52,7 +52,7 @@ class SuggestionModel:
         # get a list of all uris once
         self.uris = self.df.select("uri").collect()
 
-        self.std = args.m == "std"
+        self.std = args.method == "std"
 
         # standard std method
         if self.std:
@@ -117,9 +117,7 @@ class SuggestionModel:
 
             ## 2. Recommendation algorithm (filtering closest vectors)
 
-            stds = False
-
-            if stds:
+            if self.std:
                 return self.recommend_by_std()
             else:
                 return self.recommend_by_kmeans()
