@@ -43,14 +43,17 @@ class SuggestionModel:
 
         # initialize a user
         self.user = User()
-        
+
         # initialize the spark session and read data
         spark = SparkSession.builder.appName("how to read csv file").getOrCreate()
         self.df = spark.read.csv('dataset_with_features.csv',header=True,inferSchema=True)
-        
+
         # get a list of all uris once
         self.uris = self.df.select("uri").collect()
-        
+
+        self.kmeansFirstEntry = True
+
+    def generate_stds(self):
         # get the std for each column once
         self.std1 = self.df.select(stddev(col('danceability')).alias('std')).collect()[0].asDict()['std']
         self.std2 = self.df.select(stddev(col('energy')).alias('std')).collect()[0].asDict()['std']
@@ -63,6 +66,22 @@ class SuggestionModel:
         self.std9 = self.df.select(stddev(col('liveness')).alias('std')).collect()[0].asDict()['std']
         self.std10 = self.df.select(stddev(col('valence')).alias('std')).collect()[0].asDict()['std']
         self.std11 = self.df.select(stddev(col('tempo')).alias('std')).collect()[0].asDict()['std']
+
+    def normalize_df(self):
+        unlist = udf(lambda x: round(float(list(x)[0]),3), DoubleType())
+        for i in vars(self.user):
+            assembler = VectorAssembler(inputCols=[i],outputCol=i+"_Vect")
+            scaler = MinMaxScaler(inputCol=i+"_Vect", outputCol=i+"_Scaled")
+            pipeline = Pipeline(stages=[assembler, scaler])
+            self.df = pipeline.fit(self.df).transform(self.df).withColumn(i+"_Scaled", unlist(i+"_Scaled")).drop(i+"_Vect")
+            self.df = self.df.drop(i).withColumnRenamed(i+"_Scaled",i)
+
+    def generate_kmeans_model(self):
+        # assemble the data for fitting a kmeans model
+        assemble=VectorAssembler(inputCols=['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'],outputCol='features')
+        df_assembled=assemble.transform(self.df)
+        kmeans=KMeans(featuresCol='features', k=10)
+        self.model = kmeans.fit(df_assembled)
 
     def get_10_songs(self, songs_i_like = [], random_samples=False):
         # if we want random songs in beginning or user doesn't like any songs => generate new random songs
@@ -88,8 +107,18 @@ class SuggestionModel:
 
             ## 2. Recommendation algorithm (filtering closest vectors)
 
-            # return self.recommend_by_std()
-            return self.recommend_by_kmeans()
+            stds = False
+
+            if stds:
+                self.generate_stds()
+                return self.recommend_by_std()
+            else:
+                if self.kmeansFirstEntry:
+                    self.normalize_df()
+                    self.generate_stds()
+                    self.generate_kmeans_model()
+                    self.kmeansFirstEntry=False
+                return self.recommend_by_kmeans()
 
     def recommend_by_std(self):
         # to check for feature importance: if previous feature value - new feature value >2 * std => not important
@@ -115,36 +144,15 @@ class SuggestionModel:
         return random.sample(links, 10)
 
     def recommend_by_kmeans(self):
-
-        unlist = udf(lambda x: round(float(list(x)[0]),3), DoubleType())
-        for i in vars(self.user):
-            assembler = VectorAssembler(inputCols=[i],outputCol=i+"_Vect")
-            scaler = MinMaxScaler(inputCol=i+"_Vect", outputCol=i+"_Scaled")
-            pipeline = Pipeline(stages=[assembler, scaler])
-            self.df = pipeline.fit(self.df).transform(self.df).withColumn(i+"_Scaled", unlist(i+"_Scaled")).drop(i+"_Vect")
-            self.df = self.df.drop(i).withColumnRenamed(i+"_Scaled",i)
-
-        
-        self.df.show(5)
-
-        # assemble the data for fitting a kmeans model
-        assemble=VectorAssembler(inputCols=['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'],outputCol='features')
-        df_assembled=assemble.transform(self.df)
-
-
         # scale user vector
 #        user_vector = Vectors.dense([v for v in vars(self.user).values()])
 #        user_scaled = data_scale.transform(user_vector)
-
-        kmeans=KMeans(featuresCol='features', k=10)
-
-        model = kmeans.fit(df_assembled)
 
 #        user_vector = Vectors.dense([v for v in vars(self.user).values()])
 
 #        idx = model.predict(user_vector)
         idx = 0
-        center = model.clusterCenters()[idx]
+        center = self.model.clusterCenters()[idx]
 
         condition = (self.df.danceability-center[0]<self.std1) \
                 & (self.df.energy-center[1]<self.std2) \
