@@ -36,6 +36,7 @@ class SuggestionModel:
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("-k", "--keyfile", help="Json api key file name")
+        parser.add_argument("-m","--method", help="std or kmeans")
         args = parser.parse_args()
         with open(args.keyfile) as f:
             keys = json.load(f)
@@ -51,7 +52,16 @@ class SuggestionModel:
         # get a list of all uris once
         self.uris = self.df.select("uri").collect()
 
-        self.kmeansFirstEntry = True
+        self.std = args.m == "std"
+
+        # standard std method
+        if self.std:
+            self.generate_stds()
+        # kmeans
+        else:
+            self.normalize_df()
+            self.generate_stds()
+            self.generate_kmeans_model()
 
     def generate_stds(self):
         # get the std for each column once
@@ -110,15 +120,8 @@ class SuggestionModel:
             stds = False
 
             if stds:
-                self.generate_stds()
                 return self.recommend_by_std()
             else:
-                if self.kmeansFirstEntry:
-                    self.normalize_df()
-                    self.generate_stds()
-                    self.generate_kmeans_model()
-                    print("Starting KMeans over the df")
-                    self.kmeansFirstEntry=False
                 return self.recommend_by_kmeans()
 
     def recommend_by_std(self):
@@ -145,14 +148,10 @@ class SuggestionModel:
         return random.sample(links, 10)
 
     def recommend_by_kmeans(self):
-        # scale user vector
-#        user_vector = Vectors.dense([v for v in vars(self.user).values()])
-#        user_scaled = data_scale.transform(user_vector)
 
-#        user_vector = Vectors.dense([v for v in vars(self.user).values()])
+        user_vec = Vectors.dense(list(vars(self.user).values()))
+        idx = self.model.predict(user_vec)
 
-#        idx = model.predict(user_vector)
-        idx = 0
         center = self.model.clusterCenters()[idx]
 
         condition = (self.df.danceability-center[0]<self.std1) \
