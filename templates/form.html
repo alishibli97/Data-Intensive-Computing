@@ -12,7 +12,7 @@
   </head>
 
   
-  <body>
+  <body  style="background-color:#D3D3D3;">
     <div class="container-fluid">
       <form action='' method = "post">
         
@@ -31,36 +31,45 @@
         
       </form> 
       
-      <div class="col-sm-4">
+      <div class="col-sm-6">
       
-      <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
+        <canvas id="myChart" style="width:100%;max-width:1500px"></canvas>
       </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
       
       <script>
-        var xValues = [100,200,300,400,500,600,700,800,900,1000];
-
-        var user_vector = '{{ user_vector }}'  /* this is the data that should go into the graph */ 
+        var xValues = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+        
+        var user_vector = {{ user_vector }}  /* this is the data that should go into the graph */ 
 
         new Chart("myChart", {
-          type: "line",
+          type: "bar",
           data: {
             labels: xValues,
             datasets: [{
-              data: [860,1140,1060,1060,1070,1110,1330,2210,7830,2478],
+              data: user_vector, //[0.2,0.1,0.3,0.4,0.1,0.6,0.1,0.5,0.2,0.4,0.1],
               borderColor: "red",
-              fill: false
-            },{
-              data: [1600,1700,1700,1900,2000,2700,4000,5000,6000,7000],
-              borderColor: "green",
-              fill: false
-            },{
-              data: [300,700,2000,5000,6000,4000,2000,1000,200,100],
-              borderColor: "blue",
-              fill: false
+              fill: false,
+              backgroundColor: ["red", "green", "yellow", "blue", "pink", "gray", "brown", "orange", "purple", "violet", "black"]
             }]
           },
           options: {
+            scales: {
+              xAxes: [{
+                /* For changing color of x-axis coordinates */
+                ticks: {
+                  fontSize: 18,
+                  padding: 0,
+                  fontColor: '#000'
+                }
+              }],
+              yAxes: [{
+                  ticks: {
+                    beginAtZero:true,
+                    min: 0,
+                    max: 1  
+                  }
+              }]},
             legend: {
                 display: false,
                 // labels: {
