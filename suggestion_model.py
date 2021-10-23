@@ -15,6 +15,7 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.ml import Pipeline
 from pyspark.sql.functions import udf
 from pyspark.sql.types import DoubleType
+from loguru import logger
 
 
 class User:
@@ -46,21 +47,26 @@ class SuggestionModel:
         self.user = User()
 
         # initialize the spark session and read data
+        logger.info("Initializing a SparkSession and reading data")
         spark = SparkSession.builder.appName("how to read csv file").getOrCreate()
         self.df = spark.read.csv('dataset_with_features.csv',header=True,inferSchema=True)
+        
+        self.df = self.df.drop_duplicates()
 
         # get a list of all uris once
         self.uris = self.df.select("uri").collect()
 
-        self.std = args.method == "std"
+        logger.info("Normalizing dataset to values between 0 and 1")
+        self.normalize_df()
 
-        # standard std method
-        if self.std:
-            self.generate_stds()
+        logger.info("Getting the standard deviation of each feature column")
+        self.generate_stds()
+
+        self.std = args.method=="std"
+
         # kmeans
-        else:
-            self.normalize_df()
-            self.generate_stds()
+        if args.method=="kmeans":
+            logger.info("Fitting kmeans model")
             self.generate_kmeans_model()
 
     def generate_stds(self):
@@ -76,6 +82,7 @@ class SuggestionModel:
         self.std9 = self.df.select(stddev(col('liveness')).alias('std')).collect()[0].asDict()['std']
         self.std10 = self.df.select(stddev(col('valence')).alias('std')).collect()[0].asDict()['std']
         self.std11 = self.df.select(stddev(col('tempo')).alias('std')).collect()[0].asDict()['std']
+        # print(self.std1,self.std2,self.std3,self.std4,self.std5,self.std6,self.std7,self.std8,self.std9,self.std10,self.std11)
 
     def normalize_df(self):
         unlist = udf(lambda x: round(float(list(x)[0]),3), DoubleType())
@@ -89,8 +96,10 @@ class SuggestionModel:
     def generate_kmeans_model(self):
         # assemble the data for fitting a kmeans model
         assemble=VectorAssembler(inputCols=['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'],outputCol='features')
+        logger.info("Fitting assembler")
         df_assembled=assemble.transform(self.df)
         kmeans=KMeans(featuresCol='features', k=10)
+        logger.info("Fitting actual model")
         self.model = kmeans.fit(df_assembled)
 
     def get_10_songs(self, songs_i_like = [], random_samples=False):
@@ -105,18 +114,22 @@ class SuggestionModel:
             # iterate over each song
             for track_uri in songs_i_like:
                 # get the features for each song
-                track_features = self.spotifyAPI.audio_features(track_uri)[0]
+                # track_features = self.spotifyAPI.audio_features(track_uri)[0]
+                song_features = self.df.filter(self.df.uri=="spotify:track:"+track_uri.split("/")[-1]).take(1)[0].asDict()
+                print("The new song features are",song_features)
                 # add the value for each feature from that song to the user dict
                 for feature in vars(self.user):
                     attr = getattr(self.user, feature)
-                    setattr(self.user, feature, attr+track_features[feature])
+                    setattr(self.user, feature, attr+song_features[feature])
             # finally normalize
             for feature in vars(self.user):
                 attr = getattr(self.user, feature)
                 setattr(self.user, feature, attr/len(songs_i_like))
 
-            ## 2. Recommendation algorithm (filtering closest vectors)
+            print("The new user vector is",vars(self.user))
 
+            ## 2. Recommendation algorithm (filtering closest vectors)
+            
             if self.std:
                 return self.recommend_by_std()
             else:

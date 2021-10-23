@@ -18,9 +18,11 @@ def index():
                 checkedsongs.append(song)
 
         songlist = model.get_10_songs(checkedsongs) # get the 10 new songs based on user input
-        return render_template('form.html', songlist=songlist)
+        # print(list(vars(model.user).values()))
+        return render_template('form.html', songlist=songlist,user_vector=list(vars(model.user).values()))
     else:
         songlist = model.get_10_songs() # get the 10 songs based on nothing
+        # print(list(vars(model.user).values()))
         return render_template('form.html', songlist=songlist, user_vector=list(vars(model.user).values()))
 
 app.run(host='0.0.0.0', port=5000, debug=True)
