@@ -25,4 +25,4 @@ def index():
         # print(list(vars(model.user).values()))
         return render_template('form.html', songlist=songlist, user_vector=list(vars(model.user).values()))
 
-app.run(host='0.0.0.0', port=5000, debug=True)
+app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
