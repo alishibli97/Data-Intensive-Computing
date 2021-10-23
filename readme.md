@@ -1,6 +1,6 @@
-## KTH ID2221: Data Intensive Computing
+# KTH ID2221: Data Intensive Computing
 
 
-# Branch main: Lab assignments
+## Branch main: Lab assignments
 
-# Branch Spotify: Spotify Music Recommendation Project
+## Branch Spotify: Spotify Music Recommendation Project
