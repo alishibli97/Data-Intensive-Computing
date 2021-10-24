@@ -14,7 +14,7 @@ from pyspark.ml.feature import MinMaxScaler
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml import Pipeline
 from pyspark.sql.functions import udf
-from pyspark.sql.types import DoubleType
+from pyspark.sql.types import IntegerType,DoubleType
 from loguru import logger
 
 
@@ -49,9 +49,27 @@ class SuggestionModel:
         # initialize the spark session and read data
         logger.info("Initializing a SparkSession and reading data")
         spark = SparkSession.builder.appName("how to read csv file").getOrCreate()
-        self.df = spark.read.csv('dataset_with_features.csv',header=True,inferSchema=True)
         
+        # filename = "dataset_with_features.csv"
+        filename = "out.csv"
+        self.df = spark.read.csv(filename,header=True,inferSchema=True)
+        self.df = self.df.withColumn("danceability",self.df.danceability.cast(DoubleType()))
+        self.df = self.df.withColumn("energy",self.df.energy.cast(DoubleType()))
+        self.df = self.df.withColumn("key",self.df.key.cast(IntegerType()))
+        self.df = self.df.withColumn("loudness",self.df.loudness.cast(IntegerType()))
+        self.df = self.df.withColumn("mode",self.df.mode.cast(DoubleType()))
+        self.df = self.df.withColumn("speechiness",self.df.speechiness.cast(DoubleType()))
+        self.df = self.df.withColumn("acousticness",self.df.acousticness.cast(DoubleType()))
+        self.df = self.df.withColumn("instrumentalness",self.df.instrumentalness.cast(DoubleType()))
+        self.df = self.df.withColumn("liveness",self.df.liveness.cast(DoubleType()))
+        self.df = self.df.withColumn("valence",self.df.valence.cast(DoubleType()))
+        self.df = self.df.withColumn("tempo",self.df.tempo.cast(DoubleType()))
+        self.df = self.df.withColumn("duration_ms",self.df.duration_ms.cast(IntegerType()))
+
+
+
         self.df = self.df.drop_duplicates()
+        self.df = self.df.na.drop()
 
         # get a list of all uris once
         self.uris = self.df.select("uri").collect()
