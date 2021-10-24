@@ -64,6 +64,8 @@ class SuggestionModel:
 
         self.std = args.method=="std"
 
+        self.num_songs_liked = 0
+
         # kmeans
         if args.method=="kmeans":
             logger.info("Fitting kmeans model")
@@ -112,11 +114,12 @@ class SuggestionModel:
         else:
             ## 1. First update the user vector:
             # iterate over each song
+            self.num_songs_liked += len(songs_i_like)
             for track_uri in songs_i_like:
                 # get the features for each song
                 # track_features = self.spotifyAPI.audio_features(track_uri)[0]
                 song_features = self.df.filter(self.df.uri=="spotify:track:"+track_uri.split("/")[-1]).take(1)[0].asDict()
-                print("The new song features are",song_features)
+                # print("The new song features are",song_features)
                 # add the value for each feature from that song to the user dict
                 for feature in vars(self.user):
                     attr = getattr(self.user, feature)
@@ -124,9 +127,9 @@ class SuggestionModel:
             # finally normalize
             for feature in vars(self.user):
                 attr = getattr(self.user, feature)
-                setattr(self.user, feature, attr/len(songs_i_like))
+                setattr(self.user, feature, attr/self.num_songs_liked)
 
-            print("The new user vector is",vars(self.user))
+            # print("The new user vector is",vars(self.user))
 
             ## 2. Recommendation algorithm (filtering closest vectors)
             
@@ -139,19 +142,20 @@ class SuggestionModel:
         # to check for feature importance: if previous feature value - new feature value >2 * std => not important
         
         # need all rows where difference between user feature and row feature is less than 1 std
-        condition = (self.df.danceability-self.user.danceability<self.std1) \
-                & (self.df.energy-self.user.energy<self.std2) \
-                & (self.df.key-self.user.key<self.std3) \
-                & (self.df.loudness-self.user.loudness<self.std4) \
-                & (self.df.mode-self.user.mode<self.std5) \
-                & (self.df.speechiness-self.user.speechiness<self.std6) \
-                & (self.df.acousticness-self.user.acousticness<self.std7) \
-                & (self.df.instrumentalness-self.user.instrumentalness<self.std8) \
-                & (self.df.liveness-self.user.liveness<self.std9) \
-                & (self.df.valence-self.user.valence<self.std10) \
-                & (self.df.tempo-self.user.tempo<self.std11)
+        condition = ((self.df.danceability-self.user.danceability<self.std1) | (-self.df.danceability+self.user.danceability<self.std1)) \
+                & ((self.df.energy-self.user.energy<self.std2) | (-self.df.energy+self.user.energy<self.std2)) \
+                & ((self.df.key-self.user.key<self.std3) | (-self.df.key+self.user.key<self.std3)) \
+                & ((self.df.loudness-self.user.loudness<self.std4) | (-self.df.loudness+self.user.loudness<self.std4)) \
+                & ((self.df.mode-self.user.mode<self.std5) | (-self.df.mode+self.user.mode<self.std5)) \
+                & ((self.df.speechiness-self.user.speechiness<self.std6) | (-self.df.speechiness+self.user.speechiness<self.std6)) \
+                & ((self.df.acousticness-self.user.acousticness<self.std7) | (-self.df.acousticness+self.user.acousticness<self.std7)) \
+                & ((self.df.instrumentalness-self.user.instrumentalness<self.std8) | (-self.df.instrumentalness+self.user.instrumentalness<self.std8)) \
+                & ((self.df.liveness-self.user.liveness<self.std9) | (-self.df.liveness+self.user.liveness<self.std9)) \
+                & ((self.df.valence-self.user.valence<self.std10) | (-self.df.valence+self.user.valence<self.std10)) \
+                & ((self.df.tempo-self.user.tempo<self.std11) | (-self.df.tempo+self.user.tempo<self.std11))
 
-        # self.df.where(condition).show(10)
+        
+        
         filtered_df = self.df.where(condition).head(10)
 
         links = ["https://open.spotify.com/embed/track/" + row.uri.split(":")[-1] for row in filtered_df]
@@ -165,17 +169,17 @@ class SuggestionModel:
 
         center = self.model.clusterCenters()[idx]
 
-        condition = (self.df.danceability-center[0]<self.std1) \
-                & (self.df.energy-center[1]<self.std2) \
-                & (self.df.key-center[2]<self.std3) \
-                & (self.df.loudness-center[3]<self.std4) \
-                & (self.df.mode-center[4]<self.std5) \
-                & (self.df.speechiness-center[5]<self.std6) \
-                & (self.df.acousticness-center[6]<self.std7) \
-                & (self.df.instrumentalness-center[7]<self.std8) \
-                & (self.df.liveness-center[8]<self.std9) \
-                & (self.df.valence-center[9]<self.std10) \
-                & (self.df.tempo-center[10]<self.std11)
+        condition = ((self.df.danceability-center[0]<self.std1) | (-self.df.danceability+center[0]<self.std1)) \
+                & ((self.df.energy-center[1]<self.std2) | (-self.df.energy+center[1]<self.std2)) \
+                & ((self.df.key-center[2]<self.std3) | (-self.df.key+center[2]<self.std3)) \
+                & ((self.df.loudness-center[3]<self.std4) | (-self.df.loudness+center[3]<self.std4)) \
+                & ((self.df.mode-center[4]<self.std5) | (-self.df.mode+center[4]<self.std5)) \
+                & ((self.df.speechiness-center[5]<self.std6) | (-self.df.speechiness+center[5]<self.std6)) \
+                & ((self.df.acousticness-center[6]<self.std7) | (-self.df.acousticness+center[6]<self.std7)) \
+                & ((self.df.instrumentalness-center[7]<self.std8) | (-self.df.instrumentalness+center[7]<self.std8)) \
+                & ((self.df.liveness-center[8]<self.std9) | (-self.df.liveness+center[8]<self.std9)) \
+                & ((self.df.valence-center[9]<self.std10) | (-self.df.valence+center[9]<self.std10)) \
+                & ((self.df.tempo-center[10]<self.std11) | (-self.df.tempo+center[10]<self.std11))
 
         # self.df.where(condition).show(10)
         filtered_df = self.df.where(condition).head(10)
