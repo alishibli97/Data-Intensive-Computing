@@ -48,7 +48,7 @@ class SuggestionModel:
 
         # initialize the spark session and read data
         logger.info("Initializing a SparkSession and reading data")
-        spark = SparkSession.builder.appName("how to read csv file").getOrCreate()
+        spark = SparkSession.builder.appName("Spotify music recommendation").getOrCreate()
         
         # filename = "dataset_with_features.csv"
         filename = "out.csv"
