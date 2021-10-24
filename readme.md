@@ -1,7 +1,7 @@
 Run like this:
 
 ```bash
-python3 main.py -k keys.json
+python3 main.py -k keys.json -m std (or kmeans)
 ```
 
 Where keys.json is 
