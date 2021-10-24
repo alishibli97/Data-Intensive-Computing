@@ -1,10 +1,10 @@
 Run like this:
 
 ```bash
-python3 main.py -k keys.json -m std (or kmeans)
+python3 main.py -m std (or kmeans)
 ```
 
-Where keys.json is 
+To read from Spotify API directly you need to add argument: -k keys.json, where keys.json is 
 
 ```json
 {
