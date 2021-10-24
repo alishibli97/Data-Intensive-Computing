@@ -153,8 +153,6 @@ class SuggestionModel:
                 & ((self.df.liveness-self.user.liveness<self.std9) | (-self.df.liveness+self.user.liveness<self.std9)) \
                 & ((self.df.valence-self.user.valence<self.std10) | (-self.df.valence+self.user.valence<self.std10)) \
                 & ((self.df.tempo-self.user.tempo<self.std11) | (-self.df.tempo+self.user.tempo<self.std11))
-
-        
         
         filtered_df = self.df.where(condition).head(10)
 
