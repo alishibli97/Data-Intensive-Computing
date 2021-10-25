@@ -13,4 +13,4 @@
 
 Recommending music based on Spotify dataset of features.
 
-The report [spotify_project.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/spotify_project/Spotify_Project.pdf) and all implementations can be found in the corresponding folder: [spotify_project](https://github.com/alishibli97/Data-Intensive/tree/main/spotify_project)
+The [report](https://github.com/alishibli97/Data-Intensive/blob/main/spotify_project/Spotify_Project.pdf) and all implementations can be found in the corresponding folder: [spotify_project](https://github.com/alishibli97/Data-Intensive/tree/main/spotify_project)
