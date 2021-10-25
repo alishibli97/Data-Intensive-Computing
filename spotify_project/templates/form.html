@@ -1,0 +1,84 @@
+
+
+<html>
+
+  <head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+
+  
+  <body  style="background-color:#D3D3D3;">
+    <div class="container-fluid">
+      <form action='' method = "post">
+        
+        <div class="col-sm-5">
+        {%for word in songlist%}
+
+        <iframe src= {{word}} width="300" height="60" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        
+        Do you like this song? <input name = {{word}} type = "checkbox">
+        <br>
+        {%endfor%}
+        <input class="btn btn-primary btn-lg" type = "submit" value="Submit" width="300" >
+      </div>
+
+          
+        
+      </form> 
+      
+      <div class="col-sm-6">
+      
+        <canvas id="myChart" style="width:100%;max-width:1500px"></canvas>
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+      
+      <script>
+        var xValues = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+        
+        var user_vector = {{ user_vector }}  /* this is the data that should go into the graph */ 
+
+        new Chart("myChart", {
+          type: "bar",
+          data: {
+            labels: xValues,
+            datasets: [{
+              data: user_vector, //[0.2,0.1,0.3,0.4,0.1,0.6,0.1,0.5,0.2,0.4,0.1],
+              borderColor: "red",
+              fill: false,
+              backgroundColor: ["red", "green", "yellow", "blue", "pink", "gray", "brown", "orange", "purple", "violet", "black"]
+            }]
+          },
+          options: {
+            scales: {
+              xAxes: [{
+                /* For changing color of x-axis coordinates */
+                ticks: {
+                  fontSize: 18,
+                  padding: 0,
+                  fontColor: '#000'
+                }
+              }],
+              yAxes: [{
+                  ticks: {
+                    beginAtZero:true,
+                    min: 0,
+                    max: 1  
+                  }
+              }]},
+            legend: {
+                display: false,
+                // labels: {
+                //     color: 'rgb(255, 99, 132)'
+                // }
+            }
+          }
+        });
+      </script>
+    </div>
+  </body>
+</html>
