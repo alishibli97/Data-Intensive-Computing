@@ -16,4 +16,4 @@ To read from Spotify API directly you need to add argument: -k keys.json, where 
 
 # Work
 
-Checkout our report at [Spotify_Project.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/spotify_project/Spotify_Project.pdf)
+Checkout our report at [spotify_project.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/spotify_project/Spotify_Project.pdf)
