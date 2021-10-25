@@ -3,11 +3,11 @@
 
 ## Branch main: Lab assignments
 
-Lab0: Experimenting with Scala, MapReduce, HDFS, and HBAse.
+[Lab0](https://github.com/alishibli97/Data-Intensive/blob/main/lab0): Experimenting with Scala, MapReduce, HDFS, and HBAse.
 
-Lab1: Experimenting with Apache Spark and SQL on the Wikimedia projects [lab1.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/lab1/lab1.pdf).
+[Lab1](https://github.com/alishibli97/Data-Intensive/blob/main/lab1): Experimenting with Apache Spark and SQL on the Wikimedia projects.
 
-Lab2: Experimenting with Spark Streaming and GraphX [lab2.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/lab2/lab2.pdf).
+[Lab2](https://github.com/alishibli97/Data-Intensive/blob/main/lab2): Experimenting with Spark Streaming and GraphX.
 
 ## Branch spotify: Spotify Music Recommendation Project
 
