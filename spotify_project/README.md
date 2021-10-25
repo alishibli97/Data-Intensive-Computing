@@ -1,3 +1,4 @@
+# Usage:
 Run like this:
 
 ```bash
@@ -12,3 +13,7 @@ To read from Spotify API directly you need to add argument: -k keys.json, where 
     "client_secret" : "your-secret"
 }
 ```
+
+# Work
+
+Checkout our report at [Spotify_Project.pdf](https://github.com/alishibli97/Data-Intensive/blob/main/spotify_project/Spotify_Project.pdf)
